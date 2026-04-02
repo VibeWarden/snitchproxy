@@ -1,0 +1,83 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "snitchproxy",
+          "version": "0.1.0",
+          "informationUri": "https://github.com/vibewarden/snitchproxy",
+          "rules": [
+            {
+              "id": "no-authorization-leak",
+              "shortDescription": {
+                "text": "Authorization header must not be forwarded to third-party hosts"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "no-plaintext-secrets",
+              "shortDescription": {
+                "text": "Request body must not contain plaintext secrets"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "prefer-tls",
+              "shortDescription": {
+                "text": "Connections should use TLS"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "log-external-calls",
+              "shortDescription": {
+                "text": "External API calls should include a correlation ID"
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "no-authorization-leak",
+          "level": "error",
+          "message": {
+            "text": "Authorization header present in request to api.example.com"
+          }
+        },
+        {
+          "ruleId": "no-plaintext-secrets",
+          "level": "error",
+          "message": {
+            "text": "Body contains AWS secret key pattern"
+          }
+        },
+        {
+          "ruleId": "prefer-tls",
+          "level": "warning",
+          "message": {
+            "text": "Non-TLS connection to metrics.internal:9090"
+          }
+        },
+        {
+          "ruleId": "log-external-calls",
+          "level": "note",
+          "message": {
+            "text": "Missing X-Correlation-ID header"
+          }
+        }
+      ]
+    }
+  ]
+}
