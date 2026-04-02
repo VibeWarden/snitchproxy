@@ -77,11 +77,13 @@ func FormatJUnit(violations []assertion.Violation, totalEvaluations int) ([]byte
 		})
 	}
 
-	failures := len(cases)
+	// tests = number of unique assertion names emitted as test cases.
+	// failures = number of those with violations.
+	// Note: we only have violation data, so we cannot emit passing test cases.
 	suite := JUnitTestSuite{
 		Name:     "snitchproxy",
-		Tests:    totalEvaluations,
-		Failures: failures,
+		Tests:    len(junitCases),
+		Failures: len(junitCases),
 		Cases:    junitCases,
 	}
 

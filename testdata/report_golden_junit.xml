@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
-  <testsuite name="snitchproxy" tests="42" failures="4">
+  <testsuite name="snitchproxy" tests="4" failures="4">
     <testcase name="no-authorization-leak" classname="snitchproxy">
       <failure message="Authorization header must not be forwarded to third-party hosts" type="critical">Authorization header present in request to api.example.com</failure>
     </testcase>

@@ -52,7 +52,7 @@ func TestFormatJUnit_Structure(t *testing.T) {
 	require.Len(t, suites.Suites, 1)
 	suite := suites.Suites[0]
 	assert.Equal(t, "snitchproxy", suite.Name)
-	assert.Equal(t, testTotalEvaluations, suite.Tests)
+	assert.Equal(t, 4, suite.Tests)
 	assert.Equal(t, 4, suite.Failures)
 	assert.Len(t, suite.Cases, 4)
 
@@ -71,7 +71,7 @@ func TestFormatJUnit_Empty(t *testing.T) {
 	require.NoError(t, xml.Unmarshal(got, &suites))
 
 	require.Len(t, suites.Suites, 1)
-	assert.Equal(t, 10, suites.Suites[0].Tests)
+	assert.Equal(t, 0, suites.Suites[0].Tests)
 	assert.Equal(t, 0, suites.Suites[0].Failures)
 	assert.Empty(t, suites.Suites[0].Cases)
 }
