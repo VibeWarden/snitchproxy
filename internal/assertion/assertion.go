@@ -107,9 +107,44 @@ func Violations(results []Result) []Violation {
 }
 
 func evaluate(a Assertion, r *http.Request, requestID string) Result {
-	// TODO: implement match checking and condition evaluation
-	return Result{
-		Assertion: a.Name,
-		Passed:    true,
+	// 1. Check match scope.
+	if !Matches(a.Match, r) {
+		return Result{Assertion: a.Name, Passed: true} // not in scope, auto-pass
 	}
+
+	// 2. Evaluate condition.
+	var cond *ConditionSpec
+	var isDeny bool
+	if a.Deny != nil {
+		cond = a.Deny
+		isDeny = true
+	} else {
+		cond = a.Allow
+		isDeny = false
+	}
+
+	cr := evalCondition(cond, r)
+
+	// 3. Apply deny/allow semantics.
+	var violated bool
+	if isDeny {
+		violated = cr.met // deny: condition true = violation
+	} else {
+		violated = !cr.met // allow: condition false = violation
+	}
+
+	if violated {
+		return Result{
+			Assertion: a.Name,
+			Passed:    false,
+			Violation: &Violation{
+				Assertion:   a.Name,
+				Description: a.Description,
+				Severity:    a.Severity,
+				Detail:      cr.detail,
+				RequestID:   requestID,
+			},
+		}
+	}
+	return Result{Assertion: a.Name, Passed: true}
 }
