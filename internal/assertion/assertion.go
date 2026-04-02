@@ -48,8 +48,9 @@ type ConditionSpec struct {
 	On        string // "body", "query", "tls", "source-ip"
 	Param     string // query parameter name (when On == "query")
 	Condition string // "present", "absent", "equals", "matches", "not-matches", "contains", "version-gte", "in-cidr", "client-cert-present"
-	Value     string // expected value for equals, version-gte, in-cidr
-	Pattern   string // regex pattern for matches, not-matches
+	Value     string   // expected value for equals, version-gte, in-cidr
+	Values    []string // multi-value (e.g., multiple CIDRs for in-cidr)
+	Pattern   string   // regex pattern for matches, not-matches
 
 	// Compound: all conditions must pass (AND semantics)
 	All []ConditionSpec
