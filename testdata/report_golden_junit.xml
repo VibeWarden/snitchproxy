@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="snitchproxy" tests="42" failures="4">
+    <testcase name="no-authorization-leak" classname="snitchproxy">
+      <failure message="Authorization header must not be forwarded to third-party hosts" type="critical">Authorization header present in request to api.example.com</failure>
+    </testcase>
+    <testcase name="no-plaintext-secrets" classname="snitchproxy">
+      <failure message="Request body must not contain plaintext secrets" type="high">Body contains AWS secret key pattern</failure>
+    </testcase>
+    <testcase name="prefer-tls" classname="snitchproxy">
+      <failure message="Connections should use TLS" type="warning">Non-TLS connection to metrics.internal:9090</failure>
+    </testcase>
+    <testcase name="log-external-calls" classname="snitchproxy">
+      <failure message="External API calls should include a correlation ID" type="info">Missing X-Correlation-ID header</failure>
+    </testcase>
+  </testsuite>
+</testsuites>
