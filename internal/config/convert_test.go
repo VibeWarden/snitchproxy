@@ -251,3 +251,9 @@ func TestToAssertions(t *testing.T) {
 		})
 	}
 }
+
+func TestResolveFailOn(t *testing.T) {
+	assert.Equal(t, assertion.SeverityHigh, ResolveFailOn(""))
+	assert.Equal(t, assertion.Severity("critical"), ResolveFailOn("critical"))
+	assert.Equal(t, assertion.Severity("warning"), ResolveFailOn("warning"))
+}

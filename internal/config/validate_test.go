@@ -298,6 +298,81 @@ func TestValidate(t *testing.T) {
 				Assertions: []AssertionConfig{},
 			},
 		},
+		{
+			name: "invalid fail-on value",
+			cfg: &Config{
+				FailOn: "extreme",
+				Assertions: []AssertionConfig{
+					validAssertion(),
+				},
+			},
+			wantErr:    true,
+			errCount:   1,
+			errContain: "invalid fail-on value",
+		},
+		{
+			name: "valid fail-on values",
+			cfg: &Config{
+				FailOn:     "critical",
+				Assertions: []AssertionConfig{validAssertion()},
+			},
+		},
+		{
+			name: "empty all block",
+			cfg: &Config{
+				Assertions: []AssertionConfig{
+					{
+						Name:     "empty-all",
+						Severity: "high",
+						Deny:     &ConditionConfig{All: []ConditionConfig{}},
+					},
+				},
+			},
+			wantErr:    true,
+			errContain: "must not be empty",
+		},
+		{
+			name: "leaf condition missing condition field",
+			cfg: &Config{
+				Assertions: []AssertionConfig{
+					{
+						Name:     "no-condition",
+						Severity: "high",
+						Deny:     &ConditionConfig{Header: "X-A"},
+					},
+				},
+			},
+			wantErr:    true,
+			errContain: "condition: must not be empty",
+		},
+		{
+			name: "header context missing header field",
+			cfg: &Config{
+				Assertions: []AssertionConfig{
+					{
+						Name:     "no-header",
+						Severity: "high",
+						Deny:     &ConditionConfig{Condition: "present"},
+					},
+				},
+			},
+			wantErr:    true,
+			errContain: "header",
+		},
+		{
+			name: "query context missing param field",
+			cfg: &Config{
+				Assertions: []AssertionConfig{
+					{
+						Name:     "no-param",
+						Severity: "high",
+						Deny:     &ConditionConfig{On: "query", Condition: "present"},
+					},
+				},
+			},
+			wantErr:    true,
+			errContain: "param",
+		},
 	}
 
 	for _, tt := range tests {

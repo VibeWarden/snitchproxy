@@ -4,6 +4,15 @@ import (
 	"github.com/vibewarden/snitchproxy/internal/assertion"
 )
 
+// ResolveFailOn returns the effective fail-on severity,
+// defaulting to "high" when the config value is empty.
+func ResolveFailOn(failOn string) assertion.Severity {
+	if failOn == "" {
+		return assertion.SeverityHigh
+	}
+	return assertion.Severity(failOn)
+}
+
 // ToAssertions converts validated config assertions into domain types.
 // Call Validate first; this function assumes valid input.
 func ToAssertions(cfgAssertions []AssertionConfig) []assertion.Assertion {

@@ -75,6 +75,14 @@ var validOnValues = map[string]bool{
 func Validate(cfg *Config) error {
 	var errs ValidationErrors
 
+	// Validate fail-on value.
+	if cfg.FailOn != "" && !validSeverities[string(cfg.FailOn)] {
+		errs = append(errs, ValidationError{
+			Field:   "fail-on",
+			Message: fmt.Sprintf("invalid fail-on value %q; must be one of: critical, high, warning, info", cfg.FailOn),
+		})
+	}
+
 	names := make(map[string]bool)
 
 	for i, a := range cfg.Assertions {
@@ -137,11 +145,26 @@ func Validate(cfg *Config) error {
 
 // validateCondition recursively validates a condition block.
 func validateCondition(errs *ValidationErrors, prefix string, c *ConditionConfig) {
-	// If this is a compound condition (all block at this level).
-	if len(c.All) > 0 {
+	// Compound condition (all block).
+	if c.All != nil {
+		if len(c.All) == 0 {
+			*errs = append(*errs, ValidationError{
+				Field:   prefix + ".all",
+				Message: "must not be empty",
+			})
+		}
 		for i, sub := range c.All {
 			validateCondition(errs, fmt.Sprintf("%s.all[%d]", prefix, i), &sub)
 		}
+		return
+	}
+
+	// Leaf condition must have a condition field.
+	if c.Condition == "" {
+		*errs = append(*errs, ValidationError{
+			Field:   prefix + ".condition",
+			Message: "must not be empty",
+		})
 		return
 	}
 
@@ -151,15 +174,30 @@ func validateCondition(errs *ValidationErrors, prefix string, c *ConditionConfig
 			Field:   prefix + ".on",
 			Message: fmt.Sprintf("invalid on value %q; must be one of: body, query, tls, source-ip, or empty for header context", c.On),
 		})
-	} else if c.Condition != "" {
-		// Validate condition is valid for the given on context.
-		conditions, ok := validConditions[c.On]
-		if ok && !conditions[c.Condition] {
-			*errs = append(*errs, ValidationError{
-				Field:   prefix + ".condition",
-				Message: fmt.Sprintf("invalid condition %q for on=%q", c.Condition, c.On),
-			})
-		}
+		return
+	}
+
+	// Validate condition is valid for the given on context.
+	conditions, ok := validConditions[c.On]
+	if ok && !conditions[c.Condition] {
+		*errs = append(*errs, ValidationError{
+			Field:   prefix + ".condition",
+			Message: fmt.Sprintf("invalid condition %q for on=%q", c.Condition, c.On),
+		})
+	}
+
+	// Context-specific field requirements.
+	if c.On == "" && c.Header == "" {
+		*errs = append(*errs, ValidationError{
+			Field:   prefix + ".header",
+			Message: "required for header context (on is empty)",
+		})
+	}
+	if c.On == "query" && c.Param == "" {
+		*errs = append(*errs, ValidationError{
+			Field:   prefix + ".param",
+			Message: "required for query context",
+		})
 	}
 
 	// Validate pattern is a valid regex.
