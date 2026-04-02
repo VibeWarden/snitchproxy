@@ -71,7 +71,7 @@ func matchHeaders(specs map[string]string, headers http.Header) bool {
 		}
 		matched := false
 		for _, v := range values {
-			if globMatch(pattern, v) {
+			if headerGlobMatch(pattern, v) {
 				matched = true
 				break
 			}
@@ -92,6 +92,17 @@ func globMatch(pattern, value string) bool {
 	p := strings.ReplaceAll(pattern, ".", "/")
 	v := strings.ReplaceAll(value, ".", "/")
 	matched, err := path.Match(p, v)
+	if err != nil {
+		return false
+	}
+	return matched
+}
+
+// headerGlobMatch performs glob pattern matching for header values.
+// Unlike globMatch, * matches any characters (including dots) since header
+// values like JWTs contain dots that should not act as separators.
+func headerGlobMatch(pattern, value string) bool {
+	matched, err := path.Match(pattern, value)
 	if err != nil {
 		return false
 	}

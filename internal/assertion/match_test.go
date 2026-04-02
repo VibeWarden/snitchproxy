@@ -224,6 +224,12 @@ func TestMatches(t *testing.T) {
 			want: false,
 		},
 		{
+			name: "header glob with dots in value (JWT)",
+			spec: &MatchSpec{Headers: map[string]string{"Authorization": "Bearer *"}},
+			req:  newRequest("GET", "http://example.com/foo", map[string]string{"Authorization": "Bearer eyJ0.eXAi.OiJK"}),
+			want: true,
+		},
+		{
 			name: "headers multiple AND'd all match",
 			spec: &MatchSpec{Headers: map[string]string{
 				"Content-Type":  "application/json",
