@@ -116,7 +116,11 @@ func (h *Handler) handlePlainHTTP(w http.ResponseWriter, r *http.Request) {
 	resp, err := h.transport.RoundTrip(outReq)
 	if err != nil {
 		h.logger.Error("upstream request failed", "request_id", requestID, "error", err)
-		http.Error(w, fmt.Sprintf("Bad Gateway: %v", err), http.StatusBadGateway)
+		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+			http.Error(w, "Gateway Timeout", http.StatusGatewayTimeout)
+			return
+		}
+		http.Error(w, "Bad Gateway", http.StatusBadGateway)
 		return
 	}
 	defer resp.Body.Close()
@@ -165,15 +169,16 @@ func (h *Handler) handleConnect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-
 	clientConn, _, err := hijacker.Hijack()
 	if err != nil {
 		targetConn.Close()
 		h.logger.Error("hijack failed", "request_id", requestID, "error", err)
-		// Cannot write HTTP error after hijack attempt.
 		return
 	}
+
+	// Write 200 Connection Established after hijacking to avoid
+	// http.ResponseWriter adding extra headers.
+	clientConn.Write([]byte("HTTP/1.1 200 Connection Established\r\n\r\n"))
 
 	// Bidirectional copy.
 	go func() {
