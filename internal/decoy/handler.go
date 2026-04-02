@@ -1,6 +1,7 @@
 package decoy
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -72,6 +73,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to read request body", http.StatusInternalServerError)
 		return
 	}
+	// Restore body so assertion evaluators can read it.
+	r.Body = io.NopCloser(bytes.NewReader(body))
 
 	results := h.evaluator.Evaluate(r, requestID)
 	h.recorder.Record(results)
