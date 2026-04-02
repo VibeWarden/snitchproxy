@@ -1,0 +1,44 @@
+# Example: E-commerce API egress policy
+presets:
+  - common-auth
+  - pii
+
+fail-on: high
+
+assertions:
+  - name: no-internal-session
+    description: "Internal session tokens must never leave the network"
+    severity: critical
+    deny:
+      header: X-Internal-Session
+      condition: present
+
+  - name: no-auth-to-analytics
+    description: "Never send credentials to analytics providers"
+    severity: critical
+    match:
+      host:
+        - "*.analytics.google.com"
+        - "*.segment.io"
+        - "*.mixpanel.com"
+    deny:
+      header: Authorization
+      condition: present
+
+  - name: stripe-payment-hardening
+    description: "Stripe charge requests must use JSON over TLS 1.2+"
+    severity: critical
+    match:
+      host: "api.stripe.com"
+      path: "/v1/charges"
+      method: POST
+    allow:
+      all:
+        - header: Content-Type
+          condition: equals
+          value: "application/json"
+        - header: Idempotency-Key
+          condition: present
+        - on: tls
+          condition: version-gte
+          value: "1.2"
