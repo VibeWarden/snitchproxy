@@ -21,39 +21,39 @@ const (
 
 // Assertion is a single security check to evaluate against a request.
 type Assertion struct {
-	Name        string
-	Description string
-	Severity    Severity
-	Enabled     bool
-	Match       *MatchSpec
-	Deny        *ConditionSpec // violation if condition IS true
-	Allow       *ConditionSpec // violation if condition is NOT true
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Severity    Severity       `json:"severity"`
+	Enabled     bool           `json:"enabled"`
+	Match       *MatchSpec     `json:"match,omitempty"`
+	Deny        *ConditionSpec `json:"deny,omitempty"`
+	Allow       *ConditionSpec `json:"allow,omitempty"`
 }
 
 // MatchSpec defines which requests an assertion applies to.
 // All specified fields are AND'd. Multiple values within a field are OR'd.
 // A nil MatchSpec matches all requests.
 type MatchSpec struct {
-	Hosts   []string          // glob patterns, OR'd
-	Paths   []string          // glob patterns with ** support, OR'd
-	Methods []string          // HTTP methods, OR'd
-	Headers map[string]string // header name→glob pattern, AND'd
+	Hosts   []string          `json:"hosts,omitempty"`   // glob patterns, OR'd
+	Paths   []string          `json:"paths,omitempty"`   // glob patterns with ** support, OR'd
+	Methods []string          `json:"methods,omitempty"` // HTTP methods, OR'd
+	Headers map[string]string `json:"headers,omitempty"` // header name→glob pattern, AND'd
 }
 
 // ConditionSpec defines what to check in a request.
 // For compound conditions, use the All field.
 type ConditionSpec struct {
 	// Simple condition fields
-	Header    string // header name to inspect
-	On        string // "body", "query", "tls", "source-ip"
-	Param     string // query parameter name (when On == "query")
-	Condition string // "present", "absent", "equals", "matches", "not-matches", "contains", "version-gte", "in-cidr", "client-cert-present"
-	Value     string   // expected value for equals, version-gte, in-cidr
-	Values    []string // multi-value (e.g., multiple CIDRs for in-cidr)
-	Pattern   string   // regex pattern for matches, not-matches
+	Header    string `json:"header,omitempty"`    // header name to inspect
+	On        string `json:"on,omitempty"`        // "body", "query", "tls", "source-ip"
+	Param     string `json:"param,omitempty"`     // query parameter name (when On == "query")
+	Condition string `json:"condition,omitempty"` // "present", "absent", "equals", "matches", "not-matches", "contains", "version-gte", "in-cidr", "client-cert-present"
+	Value     string `json:"value,omitempty"`     // expected value for equals, version-gte, in-cidr
+	Values    []string `json:"values,omitempty"`  // multi-value (e.g., multiple CIDRs for in-cidr)
+	Pattern   string `json:"pattern,omitempty"`   // regex pattern for matches, not-matches
 
 	// Compound: all conditions must pass (AND semantics)
-	All []ConditionSpec
+	All []ConditionSpec `json:"all,omitempty"`
 }
 
 // Violation is the result of a failed assertion evaluation.
