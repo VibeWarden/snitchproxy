@@ -149,6 +149,11 @@ func New(opts ...Option) (*SnitchProxy, error) {
 // Use the context for cancellation. When the context is cancelled,
 // servers will be shut down gracefully.
 func (sp *SnitchProxy) Start(ctx context.Context) error {
+	// Guard against double-start.
+	if sp.modeListener != nil {
+		return errors.New("already started")
+	}
+
 	// Create mode handler.
 	var modeHandler http.Handler
 	switch sp.mode {
@@ -199,6 +204,12 @@ func (sp *SnitchProxy) Start(ctx context.Context) error {
 		"assertions", len(sp.assertions),
 		"fail_on", string(sp.failOn),
 	)
+
+	// Shut down when context is cancelled.
+	go func() {
+		<-ctx.Done()
+		sp.Close()
+	}()
 
 	return nil
 }
