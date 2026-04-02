@@ -8,13 +8,15 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/vibewarden/snitchproxy/internal/assertion"
 	"github.com/vibewarden/snitchproxy/internal/engine"
+	reportpkg "github.com/vibewarden/snitchproxy/internal/report"
 )
 
 const pathPrefix = "/__snitchproxy"
 
 // Handler creates the admin API HTTP handler.
-func Handler(report *engine.Report, logger *slog.Logger) http.Handler {
+func Handler(report *engine.Report, assertions []assertion.Assertion, logger *slog.Logger) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc(pathPrefix+"/health", func(w http.ResponseWriter, r *http.Request) {
@@ -29,21 +31,47 @@ func Handler(report *engine.Report, logger *slog.Logger) http.Handler {
 			return
 		}
 
+		violations := report.Violations()
+		total := report.TotalEvaluations()
+
 		format := r.URL.Query().Get("format")
 		switch format {
-		case "sarif":
-			// TODO: SARIF output
-			http.Error(w, "sarif format not yet implemented", http.StatusNotImplemented)
-		case "junit":
-			// TODO: JUnit output
-			http.Error(w, "junit format not yet implemented", http.StatusNotImplemented)
-		default:
+		case "", "json":
+			data, err := reportpkg.FormatJSON(violations, total)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]interface{}{
-				"total_evaluations": report.TotalEvaluations(),
-				"violations":        report.Violations(),
-			})
+			w.Write(data)
+		case "sarif":
+			data, err := reportpkg.FormatSARIF(violations, total)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(data)
+		case "junit":
+			data, err := reportpkg.FormatJUnit(violations, total)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/xml")
+			w.Write(data)
+		default:
+			http.Error(w, "unknown format: "+format, http.StatusBadRequest)
 		}
+	})
+
+	mux.HandleFunc(pathPrefix+"/config", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(assertions)
 	})
 
 	mux.HandleFunc(pathPrefix+"/reset", func(w http.ResponseWriter, r *http.Request) {
