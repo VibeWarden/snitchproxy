@@ -47,6 +47,12 @@ func TestEvalHeaderCondition(t *testing.T) {
 			wantMet: false,
 		},
 		{
+			name:    "present - header with empty value",
+			spec:    ConditionSpec{Header: "X-Custom", Condition: "present"},
+			headers: map[string]string{"X-Custom": ""},
+			wantMet: true,
+		},
+		{
 			name:    "equals - match",
 			spec:    ConditionSpec{Header: "Content-Type", Condition: "equals", Value: "application/json"},
 			headers: map[string]string{"Content-Type": "application/json"},

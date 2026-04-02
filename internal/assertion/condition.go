@@ -51,7 +51,8 @@ func evalHeaderCondition(spec *ConditionSpec, r *http.Request) conditionResult {
 
 	switch spec.Condition {
 	case "present":
-		if headerVal != "" {
+		_, exists := r.Header[http.CanonicalHeaderKey(spec.Header)]
+		if exists {
 			return conditionResult{met: true, detail: fmt.Sprintf("header %q is present", spec.Header)}
 		}
 		return conditionResult{met: false, detail: fmt.Sprintf("header %q is not present", spec.Header)}
