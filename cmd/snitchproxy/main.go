@@ -95,7 +95,7 @@ func run(args []string) error {
 	}
 
 	// 12. Create admin handler.
-	adminHandler := admin.Handler(rpt, logger)
+	adminHandler := admin.Handler(rpt, merged, logger)
 
 	// 13-14. Start servers.
 	modeListener, err := net.Listen("tcp", flags.listenAddr)
