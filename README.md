@@ -1,8 +1,10 @@
-# 🐦 SnitchProxy
+<p align="center">
+  <img src="docs/snitchproxy-banner.png" alt="SnitchProxy banner" />
+</p>
 
-**Egress Security Scanner — Catch data leaks before they leave your app.**
-
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License" /></a>
+</p>
 
 SnitchProxy is a dual-mode egress security testing tool. Deploy it as a **fake external API** to catch credential leaks, or as a **transparent proxy** to audit real integration traffic. Either way, it snitches on your app when sensitive data tries to escape.
 
